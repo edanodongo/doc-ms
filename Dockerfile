@@ -22,5 +22,4 @@ COPY . /app/
 EXPOSE 8000
 
 # Default command
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
-
+CMD ["gunicorn", "passmanager.wsgi:application", "--bind", "0.0.0.0:8000"]
