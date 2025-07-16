@@ -51,5 +51,9 @@ Doc MS addresses the need for efficient document management with AI-assisted con
 
 ## Setup and Installation
 
+---
+
 ### Clone the repository
+
+---
 
