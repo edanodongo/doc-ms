@@ -1,5 +1,4 @@
 # File: doc-ms/docker-compose.yml
-version: '3.8'
 
 services:
   web:
@@ -11,3 +10,15 @@ services:
       - .:/app
     env_file:
       - .env
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - .env
+
+volumes:
+  postgres_data:
