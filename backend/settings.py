@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ek%974@ruy8+b(t*#3d5e6r@uc5ey&h@x6!ll$rc%+ov(!+9+@'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -54,7 +55,7 @@ ROOT_URLCONF = 'backend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -74,11 +75,14 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('DB_DEFAULT_NAME'),
+        'USER': config('DB_DEFAULT_USER'),
+        'PASSWORD': config('DB_DEFAULT_PASSWORD'),
+        'HOST': config('DB_DEFAULT_HOST'),
+        'PORT': config('DB_DEFAULT_PORT'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -111,10 +115,26 @@ USE_I18N = True
 USE_TZ = True
 
 
+import os
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
+# Tell Django to look for static files both inside the app and in the global static folder
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),  # Global static folder outside the app
+]
+
+# Only used in production (when running `collectstatic`)
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")  # This should NOT be the same as STATICFILES_DIRS
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 STATIC_URL = 'static/'
+MEDIA_URL = '/media/'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
