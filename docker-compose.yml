@@ -1,24 +1,33 @@
 # File: doc-ms/docker-compose.yml
-
 services:
   web:
     build: .
     command: python manage.py runserver 0.0.0.0:8000
-    ports:
-      - "8000:8000"
-    volumes:
-      - .:/app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.docms.rule=Host(`doc-ms.local`)"
+      - "traefik.http.services.docms.loadbalancer.server.port=8000"
+    networks:
+      - traefik
     env_file:
       - .env
+    volumes:
+      - .:/app
     depends_on:
       - db
 
   db:
     image: postgres:15
+    networks:          # ← Add this section if it's missing
+      - traefik
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - postgres_data:/var/lib/postgresql/data
     env_file:
       - .env
+
+networks:
+  traefik:
+    external: true
 
 volumes:
   postgres_data:
