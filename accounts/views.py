@@ -55,3 +55,32 @@ class ChangePasswordView(APIView):
             user.save()
             return Response({'detail': 'Password updated.'})
         return Response(serializer.errors, status=400)
+
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.core.mail import send_mail
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.contrib.auth import get_user_model
+from django.conf import settings
+
+# Serializer for password reset request
+class PasswordResetRequestView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+        user = get_user_model().objects.filter(email=email).first()
+        if user:
+            token = PasswordResetTokenGenerator().make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            reset_url = f"{settings.FRONTEND_URL}/reset-password/?uid={uid}&token={token}"
+
+            send_mail(
+                "Password Reset Request",
+                f"Reset your password: {reset_url}",
+                "noreply@docms.com",
+                [user.email],
+            )
+        return Response({"detail": "If your account exists, a password reset link has been sent."})
