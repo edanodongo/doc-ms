@@ -24,6 +24,7 @@ class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]
+    
 
 # To allow users to view their profile/also update their profiles
 from rest_framework.views import APIView
