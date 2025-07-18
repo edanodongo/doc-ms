@@ -1,10 +1,7 @@
 from django.urls import path
 from .views import RegisterView
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
-from .views import ProfileView
+from rest_framework_simplejwt.views import (TokenObtainPairView, TokenRefreshView,)
+from rest_framework_simplejwt.views import TokenBlacklistView
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
@@ -13,4 +10,9 @@ urlpatterns = [
 
     # For users to view profile 
     path('profile/', ProfileView.as_view(), name='profile'),
+
+    path('logout/', TokenBlacklistView.as_view(), name='token_blacklist'),
 ]
+
+
+
