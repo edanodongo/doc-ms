@@ -17,6 +17,10 @@ urlpatterns = [
 
     # For users to change their password
     path('change-password/', ChangePasswordView.as_view(), name='change_password'),
+
+    # For password reset functionality
+    path('password-reset/request/', PasswordResetRequestView.as_view(), name='password_reset_request'),
+    path('password-reset/confirm/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
 ]
 
 
