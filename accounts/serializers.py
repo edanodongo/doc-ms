@@ -38,3 +38,14 @@ class PasswordChangeSerializer(serializers.Serializer):
 # Serializer for password reset request
 class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
+
+# Serializer for password reset confirmation
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    uid = serializers.CharField()
+    token = serializers.CharField()
+    new_password = serializers.CharField()
+
+    def validate_new_password(self, value):
+        if len(value) < 8:
+            raise serializers.ValidationError("Password too short.")
+        return value

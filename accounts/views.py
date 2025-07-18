@@ -84,3 +84,30 @@ class PasswordResetRequestView(APIView):
                 [user.email],
             )
         return Response({"detail": "If your account exists, a password reset link has been sent."})
+
+
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+
+# Serializer for password reset confirmation
+class PasswordResetConfirmView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        uid = serializer.validated_data['uid']
+        token = serializer.validated_data['token']
+        new_password = serializer.validated_data['new_password']
+        try:
+            uid_decoded = urlsafe_base64_decode(uid).decode()
+            user = get_user_model().objects.get(pk=uid_decoded)
+        except Exception:
+            return Response({'uid': 'Invalid link.'}, status=400)
+
+        if not PasswordResetTokenGenerator().check_token(user, token):
+            return Response({'token': 'Invalid or expired token.'}, status=400)
+
+        user.set_password(new_password)
+        user.save()
+        return Response({'detail': 'Password reset successful.'})
