@@ -1,11 +1,11 @@
 from django.shortcuts import render
-
-# DRF’s APIView and serializers
+ # This file contains the views for user registration, login, and profile management
 from rest_framework import generics, permissions
 from django.contrib.auth.models import User
 from rest_framework.serializers import ModelSerializer
 from rest_framework.response import Response
-
+ 
+# Serializer for user registration
 class UserSerializer(ModelSerializer):
     class Meta:
         model = User
@@ -25,8 +25,7 @@ class RegisterView(generics.CreateAPIView):
     serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]
     
-
-# To allow users to view their profile/also update their profiles
+# View for user profile
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 
@@ -36,3 +35,79 @@ class ProfileView(APIView):
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
+
+#  To allow users to change their password
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = PasswordChangeSerializer(data=request.data)
+        if serializer.is_valid():
+            user = request.user
+            if not user.check_password(serializer.validated_data['old_password']):
+                return Response({'old_password': 'Wrong password.'}, status=400)
+            user.set_password(serializer.validated_data['new_password'])
+            user.save()
+            return Response({'detail': 'Password updated.'})
+        return Response(serializer.errors, status=400)
+
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.core.mail import send_mail
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.contrib.auth import get_user_model
+from django.conf import settings
+
+# Serializer for password reset request
+class PasswordResetRequestView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+        user = get_user_model().objects.filter(email=email).first()
+        if user:
+            token = PasswordResetTokenGenerator().make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            reset_url = f"{settings.FRONTEND_URL}/reset-password/?uid={uid}&token={token}"
+
+            send_mail(
+                "Password Reset Request",
+                f"Reset your password: {reset_url}",
+                "noreply@docms.com",
+                [user.email],
+            )
+        return Response({"detail": "If your account exists, a password reset link has been sent."})
+
+
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+
+# Serializer for password reset confirmation
+class PasswordResetConfirmView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        uid = serializer.validated_data['uid']
+        token = serializer.validated_data['token']
+        new_password = serializer.validated_data['new_password']
+        try:
+            uid_decoded = urlsafe_base64_decode(uid).decode()
+            user = get_user_model().objects.get(pk=uid_decoded)
+        except Exception:
+            return Response({'uid': 'Invalid link.'}, status=400)
+
+        if not PasswordResetTokenGenerator().check_token(user, token):
+            return Response({'token': 'Invalid or expired token.'}, status=400)
+
+        user.set_password(new_password)
+        user.save()
+        return Response({'detail': 'Password reset successful.'})

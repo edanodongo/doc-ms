@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 
+# Serializer for user registration
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
@@ -20,3 +21,31 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             password=validated_data['password'],
         )
         return user
+
+
+from rest_framework import serializers
+
+# Serializer for changing user password
+class PasswordChangeSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+    def validate_new_password(self, value):
+        if len(value) < 8:
+            raise serializers.ValidationError("Password too short.")
+        return value
+
+# Serializer for password reset request
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+# Serializer for password reset confirmation
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    uid = serializers.CharField()
+    token = serializers.CharField()
+    new_password = serializers.CharField()
+
+    def validate_new_password(self, value):
+        if len(value) < 8:
+            raise serializers.ValidationError("Password too short.")
+        return value
