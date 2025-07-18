@@ -1,11 +1,11 @@
 from django.shortcuts import render
-
-# DRF’s APIView and serializers
+ # This file contains the views for user registration, login, and profile management
 from rest_framework import generics, permissions
 from django.contrib.auth.models import User
 from rest_framework.serializers import ModelSerializer
 from rest_framework.response import Response
-
+ 
+# Serializer for user registration
 class UserSerializer(ModelSerializer):
     class Meta:
         model = User
@@ -25,8 +25,7 @@ class RegisterView(generics.CreateAPIView):
     serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]
     
-
-# To allow users to view their profile/also update their profiles
+# View for user profile
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 
@@ -36,3 +35,23 @@ class ProfileView(APIView):
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
+
+#  To allow users to change their password
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = PasswordChangeSerializer(data=request.data)
+        if serializer.is_valid():
+            user = request.user
+            if not user.check_password(serializer.validated_data['old_password']):
+                return Response({'old_password': 'Wrong password.'}, status=400)
+            user.set_password(serializer.validated_data['new_password'])
+            user.save()
+            return Response({'detail': 'Password updated.'})
+        return Response(serializer.errors, status=400)
