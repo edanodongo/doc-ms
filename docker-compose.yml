@@ -3,10 +3,7 @@ services:
   web:
     build: .
     command: python manage.py runserver 0.0.0.0:8000
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.docms.rule=Host(`doc-ms.local`)"
-      - "traefik.http.services.docms.loadbalancer.server.port=8000"
+    container_name: doc-ms
     networks:
       - traefik
     env_file:
