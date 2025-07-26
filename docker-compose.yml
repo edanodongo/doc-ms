@@ -24,7 +24,7 @@ services:
 
 networks:
   traefik:
-    external: true
+    name: traefik # Ensure this matches the network used by Traefik
 
 volumes:
   postgres_data:
