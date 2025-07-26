@@ -15,7 +15,7 @@ services:
 
   db:
     image: postgres:15
-    networks:          # ← Add this section if it's missing
+    networks:          
       - traefik
     volumes:
       - postgres_data:/var/lib/postgresql/data
