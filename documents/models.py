@@ -10,6 +10,7 @@ class Folder(models.Model):
     def __str__(self):
         return self.name
 
+# Model for documents
 class Document(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='documents')
     folder = models.ForeignKey(Folder, on_delete=models.SET_NULL, null=True, blank=True, related_name='documents')

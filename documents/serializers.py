@@ -1,12 +1,13 @@
 from rest_framework import serializers
 from .models import Document, Folder
 
-# Serializer for Document model
+# FolderSerializer for Folder model
 class FolderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Folder
         fields = ['id', 'name', 'created_at']
 
+# DocumentSerializer for Document model
 class DocumentSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.username')
 
