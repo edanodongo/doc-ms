@@ -2,7 +2,7 @@ from rest_framework import generics, permissions, viewsets
 from .models import Document, Folder
 from .serializers import DocumentSerializer, FolderSerializer
 
-# ViewSet for managing documents and folders
+# FolderViewSet for managing user folders
 class FolderViewSet(viewsets.ModelViewSet):
     serializer_class = FolderSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -13,6 +13,7 @@ class FolderViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
 
+# DocumentViewSet for managing user documents
 class DocumentViewSet(viewsets.ModelViewSet):
     serializer_class = DocumentSerializer
     permission_classes = [permissions.IsAuthenticated]
