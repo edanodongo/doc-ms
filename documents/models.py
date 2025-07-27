@@ -23,3 +23,4 @@ class Document(models.Model):
         return self.name
 
 
+summary = models.TextField(blank=True)
