@@ -24,14 +24,13 @@ services:
     env_file:
       - .env
 
-# networks:
-#   traefik:
-#     external: true
-
-
 networks:
   traefik:
-    name: traefik # Ensure this matches the network used by Traefik
+    external: true
+
+# networks:
+#   traefik:
+#     name: traefik # Ensure this matches the network used by Traefik
 
 volumes:
   postgres_data:
