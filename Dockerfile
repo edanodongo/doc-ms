@@ -27,7 +27,6 @@ RUN pip install -r requirements.txt
 RUN apt-get purge -y --auto-remove gcc libpq-dev && \
 	rm -rf /var/lib/apt/lists/*
 
-
 # Copy project files
 COPY . /app/
 
