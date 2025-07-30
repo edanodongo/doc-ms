@@ -33,3 +33,14 @@ class Document(models.Model):
         return self.name
 
 summary = models.TextField(blank=True)
+
+
+from django.db import models
+from django.contrib.auth.models import User
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    max_files = models.PositiveIntegerField(default=100)  # e.g., max 100 files
+
+    def __str__(self):
+        return self.user.username
