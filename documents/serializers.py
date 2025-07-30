@@ -44,3 +44,13 @@ class DocumentSerializer(serializers.ModelSerializer):
                 tag_objs.append(tag_obj)
             instance.tags.set(tag_objs)
         return instance
+    
+    
+    def validate_file(self, value):
+        allowed_types = ('.pdf', '.docx', '.txt')
+        if not value.name.lower().endswith(allowed_types):
+            raise serializers.ValidationError("Only PDF, DOCX, or TXT files are allowed.")
+        # Example file size limit (10MB):
+        if value.size > 10 * 1024 * 1024:
+            raise serializers.ValidationError("File too large (10MB max).")
+        return value
