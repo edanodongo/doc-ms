@@ -7,11 +7,40 @@ class FolderSerializer(serializers.ModelSerializer):
         model = Folder
         fields = ['id', 'name', 'created_at']
 
+from rest_framework import serializers
+from .models import Document, Tag
+
+# TagSerializer for Tag model
+# This serializer is used to handle tags in DocumentSerializer
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ['id', 'name']
+        
 # DocumentSerializer for Document model
+# This serializer includes nested TagSerializer for tags
 class DocumentSerializer(serializers.ModelSerializer):
-    owner = serializers.ReadOnlyField(source='owner.username')
+    tags = TagSerializer(many=True, required=False)
 
     class Meta:
         model = Document
         fields = ['id', 'owner', 'folder', 'file', 'name', 'tags', 'uploaded_at']
-        read_only_fields = ['owner', 'uploaded_at']
+
+    def create(self, validated_data):
+        tags_data = validated_data.pop('tags', [])
+        document = Document.objects.create(**validated_data)
+        for tag_data in tags_data:
+            tag_obj, created = Tag.objects.get_or_create(name=tag_data['name'])
+            document.tags.add(tag_obj)
+        return document
+
+    def update(self, instance, validated_data):
+        tags_data = validated_data.pop('tags', [])
+        instance = super().update(instance, validated_data)
+        if tags_data:
+            tag_objs = []
+            for tag_data in tags_data:
+                tag_obj, created = Tag.objects.get_or_create(name=tag_data['name'])
+                tag_objs.append(tag_obj)
+            instance.tags.set(tag_objs)
+        return instance
