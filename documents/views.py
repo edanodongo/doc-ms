@@ -92,3 +92,16 @@ class DocumentViewSet(viewsets.ModelViewSet):
             preview_text = "Preview not available for this format."
 
         return Response({'preview': preview_text[:1000]})
+    
+    # Override perform_create to check user upload quota
+    # This method ensures that users do not exceed their upload quota
+    def perform_create(self, serializer):
+        user = self.request.user
+        profile = getattr(user, 'userprofile', None)
+        if profile:
+            if Document.objects.filter(owner=user).count() >= profile.max_files:
+                raise serializers.ValidationError("Upload quota exceeded.")
+        else:
+            if Document.objects.filter(owner=user).count() >= 100:
+                raise serializers.ValidationError("Upload quota exceeded.")
+        serializer.save(owner=user)
