@@ -107,3 +107,12 @@ class DocumentViewSet(viewsets.ModelViewSet):
             if Document.objects.filter(owner=user).count() >= 100:
                 raise serializers.ValidationError("Upload quota exceeded.")
         serializer.save(owner=user)
+            
+    # Example function to log user actions
+    # This function can be used in views to log actions like upload, delete, view, etc. 
+    def log_action(user, document, action):
+        from .models import AuditLog
+        AuditLog.objects.create(user=user, document=document, action=action)
+
+    # Example usage in every relevant view:
+    log_action(request.user, document, 'preview')
