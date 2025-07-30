@@ -27,6 +27,7 @@ class Document(models.Model):
     file = models.FileField(upload_to='documents/')
     name = models.CharField(max_length=255)
     tags = models.ManyToManyField(Tag, blank=True, related_name='documents')
+    shared_with = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='shared_documents')
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
