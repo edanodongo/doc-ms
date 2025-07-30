@@ -7,9 +7,13 @@ class FolderViewSet(viewsets.ModelViewSet):
     serializer_class = FolderSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    # Override get_queryset to filter folders by owner
+    # This method ensures that users can only access their own folders
     def get_queryset(self):
         return Folder.objects.filter(owner=self.request.user)
 
+    # Perform create method to set the owner automatically
+    # This method ensures that the folder is associated with the authenticated user
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
 
@@ -21,6 +25,8 @@ from .serializers import DocumentSerializer
 from ai.summary import summarize_text
 
 from rest_framework import filters
+import PyPDF2
+from docx import Document as DocxDocument
 
 # Extend DocumentViewSet to include summarization action
 # DocumentViewSet for managing user documents with summarization
@@ -32,13 +38,18 @@ class DocumentViewSet(viewsets.ModelViewSet):
     search_fields = ['name', 'tags']
     ordering_fields = ['uploaded_at', 'name']
 
-
+    # Override get_queryset to filter documents by owner
+    # This method ensures that users can only access their own documents
     def get_queryset(self):
         return Document.objects.filter(owner=self.request.user)
 
+    # Perform create method to set the owner automatically
+    # This method ensures that the document is associated with the authenticated user
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
-
+        
+    # Action to summarize document content
+    # This action generates a summary of the document content using AI
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def summarize(self, request, pk=None):
         document = self.get_object()
@@ -50,3 +61,34 @@ class DocumentViewSet(viewsets.ModelViewSet):
         document.summary = summary
         document.save()
         return Response({'summary': summary})
+    
+    # Action to preview document content
+    # This action provides a preview of the document content based on its type
+    @action(detail=True, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def preview(self, request, pk=None):
+        document = self.get_object()
+        file = document.file
+        preview_text = ""
+
+        if file.name.endswith('.pdf'):
+            file.open('rb')
+            reader = PyPDF2.PdfReader(file)
+            text_parts = []
+            for page in reader.pages[:2]:  # Preview first 2 pages
+                text_parts.append(page.extract_text() or '')
+            preview_text = "\n".join(text_parts)
+            file.close()
+        elif file.name.endswith('.docx'):
+            file.open('rb')
+            doc = DocxDocument(file)
+            text_parts = [p.text for p in doc.paragraphs[:10]]  # First 10 paragraphs
+            preview_text = "\n".join(text_parts)
+            file.close()
+        elif file.name.endswith('.txt'):
+            file.open('r')
+            preview_text = file.read(500)  # First 500 characters
+            file.close()
+        else:
+            preview_text = "Preview not available for this format."
+
+        return Response({'preview': preview_text[:1000]})

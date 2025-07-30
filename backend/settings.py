@@ -140,4 +140,11 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',  # for web sessions
         'rest_framework_simplejwt.authentication.JWTAuthentication',  # for token API
     ],
+    
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'user': '1000/day'  # Adjust as needed
+    }
 }
