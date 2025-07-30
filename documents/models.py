@@ -32,5 +32,4 @@ class Document(models.Model):
     def __str__(self):
         return self.name
 
-
 summary = models.TextField(blank=True)
