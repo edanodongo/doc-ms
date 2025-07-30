@@ -95,6 +95,8 @@ class DocumentViewSet(viewsets.ModelViewSet):
     
     # Override perform_create to check user upload quota
     # This method ensures that users do not exceed their upload quota
+    # This is useful for managing user-specific limits or settings
+    # e.g., maximum number of files a user can upload
     def perform_create(self, serializer):
         user = self.request.user
         profile = getattr(user, 'userprofile', None)
