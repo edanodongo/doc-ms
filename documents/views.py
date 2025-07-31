@@ -130,3 +130,13 @@ class DocumentViewSet(viewsets.ModelViewSet):
     def check_object_permissions(self, request, obj):
         if obj.owner != request.user and request.user not in obj.shared_with.all():
             self.permission_denied(request, message="You do not have access to this document.")
+
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def share(self, request, pk=None):
+        document = self.get_object()
+        if document.owner != request.user:
+            return Response({'error': 'Only owner can share.'}, status=403)
+        user_ids = request.data.get('user_ids', [])
+        document.shared_with.set(user_ids)
+        return Response({'detail': 'Shared.'})
