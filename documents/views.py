@@ -159,3 +159,12 @@ class DocumentViewSet(viewsets.ModelViewSet):
                 rank=SearchRank(SearchVector('name', 'tags__name', 'content_search'), SearchQuery(query))
             ).filter(rank__gte=0.1).order_by('-rank')
         return queryset
+    
+    
+from ai.tasks import generate_summary
+
+@action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+def summarize(self, request, pk=None):
+    document = self.get_object()
+    generate_summary.delay(document.id)
+    return Response({'detail': 'Summary is being generated and will be available soon.'})
