@@ -107,6 +107,11 @@ class DocumentViewSet(viewsets.ModelViewSet):
             if Document.objects.filter(owner=user).count() >= 100:
                 raise serializers.ValidationError("Upload quota exceeded.")
         serializer.save(owner=user)
+
+
+
+
+
             
     # Example function to log user actions
     # This function can be used in views to log actions like upload, delete, view, etc. 
@@ -116,3 +121,12 @@ class DocumentViewSet(viewsets.ModelViewSet):
 
     # Example usage in every relevant view:
     log_action(request.user, document, 'preview')
+
+
+    def get_queryset(self):
+        user = self.request.user
+        return Document.objects.filter(models.Q(owner=user) | models.Q(shared_with=user)).distinct()
+
+    def check_object_permissions(self, request, obj):
+        if obj.owner != request.user and request.user not in obj.shared_with.all():
+            self.permission_denied(request, message="You do not have access to this document.")
