@@ -146,3 +146,16 @@ class DocumentViewSet(viewsets.ModelViewSet):
         user_ids = request.data.get('user_ids', [])
         document.shared_with.set(user_ids)
         return Response({'detail': 'Shared.'})
+
+
+    # Action to search documents
+    # This action allows users to search for documents by name, tags, or content
+    # Useful for quickly finding documents
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query = self.request.query_params.get('q')
+        if query:
+            queryset = queryset.annotate(
+                rank=SearchRank(SearchVector('name', 'tags__name', 'content_search'), SearchQuery(query))
+            ).filter(rank__gte=0.1).order_by('-rank')
+        return queryset
