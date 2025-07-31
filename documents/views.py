@@ -122,16 +122,23 @@ class DocumentViewSet(viewsets.ModelViewSet):
     # Example usage in every relevant view:
     log_action(request.user, document, 'preview')
 
-
+    # DocumentViewSet for managing user documents with sharing functionality
+    # This viewset allows users to perform CRUD operations on their documents
     def get_queryset(self):
         user = self.request.user
         return Document.objects.filter(models.Q(owner=user) | models.Q(shared_with=user)).distinct()
 
+    # Override check_object_permissions to ensure users can only access their own documents or shared documents
+    # This method checks if the user is the owner or has been granted access to the document
+    # This is useful for ensuring that users cannot access documents they do not own or have not been shared with
     def check_object_permissions(self, request, obj):
         if obj.owner != request.user and request.user not in obj.shared_with.all():
             self.permission_denied(request, message="You do not have access to this document.")
 
 
+    # Action to share document with other users
+    # This action allows the owner to share the document with other users
+    # This is useful for collaborative work
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def share(self, request, pk=None):
         document = self.get_object()
