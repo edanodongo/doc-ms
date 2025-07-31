@@ -29,7 +29,11 @@ class Document(models.Model):
     tags = models.ManyToManyField(Tag, blank=True, related_name='documents')
     shared_with = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='shared_documents')
     uploaded_at = models.DateTimeField(auto_now_add=True)
-
+    content_search = SearchVectorField(null=True)
+    
+    class Meta:
+        indexes = [GinIndex(fields=['content_search'])]
+    
     def __str__(self):
         return self.name
 

@@ -135,7 +135,6 @@ class DocumentViewSet(viewsets.ModelViewSet):
         if obj.owner != request.user and request.user not in obj.shared_with.all():
             self.permission_denied(request, message="You do not have access to this document.")
 
-
     # Action to share document with other users
     # This action allows the owner to share the document with other users
     # This is useful for collaborative work
