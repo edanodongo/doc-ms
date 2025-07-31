@@ -148,3 +148,6 @@ REST_FRAMEWORK = {
         'user': '1000/day'  # Adjust as needed
     }
 }
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
