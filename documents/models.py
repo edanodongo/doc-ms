@@ -19,6 +19,10 @@ class Tag(models.Model):
     def __str__(self):
         return self.name
 
+
+from django.contrib.postgres.search import SearchVectorField
+from django.contrib.postgres.indexes import GinIndex
+
 # Model for documents
 # This model represents a document uploaded by a user
 class Document(models.Model):
@@ -27,9 +31,31 @@ class Document(models.Model):
     file = models.FileField(upload_to='documents/')
     name = models.CharField(max_length=255)
     tags = models.ManyToManyField(Tag, blank=True, related_name='documents')
+    shared_with = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='shared_documents')
+    content_search = SearchVectorField(null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
-
+    
+    class Meta:
+        indexes = [GinIndex(fields=['content_search'])]
+    
     def __str__(self):
         return self.name
 
 summary = models.TextField(blank=True)
+
+
+# Model for audit logs
+# This model is used to track user actions on documents
+class AuditLog(models.Model):
+    ACTIONS = [
+        ('upload', 'Upload'),
+        ('delete', 'Delete'),
+        ('view', 'View'),
+        ('download', 'Download'),
+        ('preview', 'Preview'),
+        # etc.
+    ]
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    document = models.ForeignKey(Document, on_delete=models.CASCADE)
+    action = models.CharField(max_length=20, choices=ACTIONS)
+    timestamp = models.DateTimeField(auto_now_add=True)
