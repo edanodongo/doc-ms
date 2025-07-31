@@ -19,6 +19,10 @@ class Tag(models.Model):
     def __str__(self):
         return self.name
 
+
+from django.contrib.postgres.search import SearchVectorField
+from django.contrib.postgres.indexes import GinIndex
+
 # Model for documents
 # This model represents a document uploaded by a user
 class Document(models.Model):
@@ -28,7 +32,11 @@ class Document(models.Model):
     name = models.CharField(max_length=255)
     tags = models.ManyToManyField(Tag, blank=True, related_name='documents')
     shared_with = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='shared_documents')
+    content_search = SearchVectorField(null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        indexes = [GinIndex(fields=['content_search'])]
     
     def __str__(self):
         return self.name
